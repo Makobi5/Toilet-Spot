@@ -1,4 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.example.toilet_spot">
     <application
         android:label="toilet_spot"
         android:name="${applicationName}"
@@ -19,6 +19,8 @@
             <meta-data
               android:name="io.flutter.embedding.android.NormalTheme"
               android:resource="@style/NormalTheme"
+              android:name="com.google.android.geo.API_KEY"
+            android:value="YOUAIzaSyC7bJRko2uT9M-l9Gv0obEGTqsykcUGWsQ"
               />
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>

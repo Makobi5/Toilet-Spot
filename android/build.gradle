@@ -16,3 +16,21 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
+
+android {
+    compileSdkVersion flutter.compileSdkVersion
+
+    defaultConfig {
+        applicationId "com.example.toilet_spot"
+        minSdkVersion 21       // Set to 21
+        targetSdkVersion flutter.targetSdkVersion
+        versionCode flutterVersionCode.toInteger()
+        versionName flutterVersionName
+    }
+
+    buildTypes {
+        release {
+            signingConfig signingConfigs.release
+        }
+    }
+}
