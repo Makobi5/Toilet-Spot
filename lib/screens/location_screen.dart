@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:toilet_spot/providers/location_provider.dart';
+import 'package:toilet_spot/providers/location_provider.dart' as locationProvider;
 import 'package:toilet_spot/models/toilet.dart';
+import 'package:toilet_spot/providers/lib/state/toilet_state_notifier.dart' as toiletStateNotifier;
 
 class LocationScreen extends ConsumerWidget {
   const LocationScreen({Key? key}) : super(key: key);
@@ -9,7 +10,7 @@ class LocationScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Watch the toiletLocationsProvider for data updates
-    final toiletLocationsAsync = ref.watch(toiletLocationsProvider);
+    final toiletLocationsAsync = ref.watch(locationProvider.toiletLocationsProvider); // Use the prefix
 
     return Scaffold(
       appBar: AppBar(

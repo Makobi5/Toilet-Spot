@@ -1,4 +1,6 @@
-import 'dart:convert';
+// lib/services/api_service.dart
+
+import 'dart:convert'; // For JSON encoding
 import 'package:http/http.dart' as http;
 
 class ApiService {
@@ -6,27 +8,28 @@ class ApiService {
 
   ApiService({required this.baseUrl});
 
-  Future<List<dynamic>> fetchToiletLocations() async {
-    final url = Uri.parse('$baseUrl/toilets');
-    final response = await http.get(url);
+  // Fetch toilet locations from the API
+  Future<List<Map<String, dynamic>>> fetchToiletLocations() async {
+    final response = await http.get(Uri.parse('$baseUrl/toilets'));
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
+      final List<dynamic> data = json.decode(response.body);
+      return data.map((toilet) => toilet as Map<String, dynamic>).toList();
     } else {
-      throw Exception('Failed to load toilet locations');
+      throw Exception('Failed to load toilets');
     }
   }
 
+  // Add a new toilet location by sending data to the API
   Future<void> addToiletLocation(Map<String, dynamic> toiletData) async {
-    final url = Uri.parse('$baseUrl/toilets');
     final response = await http.post(
-      url,
+      Uri.parse('$baseUrl/toilets'),
       headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(toiletData),
+      body: json.encode(toiletData), // Convert toiletData map to JSON
     );
 
-    if (response.statusCode != 201) {
-      throw Exception('Failed to add toilet location');
+    if (response.statusCode != 200) {
+      throw Exception('Failed to add toilet');
     }
   }
 }

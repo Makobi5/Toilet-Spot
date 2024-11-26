@@ -1,7 +1,8 @@
+// lib/state/toilet_state_notifier.dart
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toilet_spot/models/toilet.dart';
 import 'package:toilet_spot/services/api_service.dart';
-
 
 // Define a StateNotifier to manage the state of toilets
 class ToiletStateNotifier extends StateNotifier<List<Toilet>> {
@@ -55,5 +56,5 @@ final toiletLocationsProvider = FutureProvider<List<Toilet>>((ref) async {
 
 // Define an ApiService provider for dependency injection
 final apiServiceProvider = Provider<ApiService>(
-  (ref) => ApiService(baseUrl: 'https://example.com/api'), // Replace with your actual API base URL
+  (ref) => ApiService(baseUrl: 'https://jsonplaceholder.typicode.com'), // Replace with your actual API base URL
 );
