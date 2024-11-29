@@ -1,172 +1,147 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import '/models/toilet.dart'; // Import the Toilet model
-import 'package:toilet_spot/screens/map_screen.dart'; // Import the MapScreen
-import 'package:toilet_spot/screens/toilet_details_screen.dart';  // Import the ToiletDetailsScreen
+import '../models/toilet.dart';
+import '../services/toilet_provider.dart';
+import '../widgets/rating_widget.dart';
 
-
-// The HomeScreen widget where the search button is added
 class HomeScreen extends StatefulWidget {
   @override
   _HomeScreenState createState() => _HomeScreenState();
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  // This list will hold the fetched toilet data
-  late Future<List<Toilet>> toilets;
-
-  // Function to fetch data from the API
-  Future<List<Toilet>> fetchToilets() async {
-    final response = await http.get(Uri.parse('https://jsonplaceholder.typicode.com/posts'));
-
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      // Convert JSON data to a list of Toilet objects
-      return data.map((item) => Toilet.fromJson(item)).toList();
-    } else {
-      throw Exception('Failed to load toilets');
-    }
+  List<Toilet> _searchResults = [];
+  final TextEditingController _searchController = TextEditingController();
+  
+  void _performSearch(String query) {
+    setState(() {
+      _searchResults = ToiletProvider.searchToilets(query);
+    });
   }
 
   @override
   void initState() {
     super.initState();
-    toilets = fetchToilets(); // Call the fetch function when the screen is loaded
+    _searchResults = ToiletProvider.getAllToilets();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Toilet Spot'),
+        title: Text('Toilet Spot'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.search),
+            icon: Icon(Icons.map),
             onPressed: () {
-              // Implement the search functionality here
-              showSearch(context: context, delegate: ToiletSearchDelegate(toilets: [])); // Pass the list of toilets here
+              Navigator.pushNamed(context, '/map');
             },
           ),
         ],
       ),
       body: Column(
         children: [
-          ElevatedButton(
-            onPressed: () {
-              // Navigate to the MapScreen
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => MapScreen()), // Navigates to the MapScreen
-              );
-            },
-            child: Text('View Toilets on Map'),
+          Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: _searchController,
+              onChanged: _performSearch,
+              decoration: InputDecoration(
+                hintText: 'Search toilets...',
+                prefixIcon: Icon(Icons.search),
+                suffixIcon: _searchController.text.isNotEmpty
+                  ? IconButton(
+                      icon: Icon(Icons.clear),
+                      onPressed: () {
+                        _searchController.clear();
+                        _performSearch('');
+                      },
+                    )
+                  : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+            ),
           ),
           Expanded(
-            child: FutureBuilder<List<Toilet>>(
-              future: toilets, // Pass the future to FutureBuilder
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                } else if (snapshot.hasError) {
-                  return Center(child: Text('Error: ${snapshot.error}'));
-                } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                  return const Center(child: Text('No toilets available.'));
-                } else {
-                  return ListView.builder(
-                    itemCount: snapshot.data!.length,
-                    itemBuilder: (context, index) {
-                      final toilet = snapshot.data![index];
-                      return Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                        child: ListTile(
-                          title: Text(toilet.name),
-                          subtitle: Text(toilet.address),
-                          trailing: Text('${toilet.latitude}, ${toilet.longitude}', style: const TextStyle(color: Colors.grey)),
-                          onTap: () {
-                            // Navigate to the ToiletDetailsScreen and pass the selected toilet data
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ToiletDetailsScreen(toilet: toilet),
-                              ),
-                            );
-                          },
+            child: _searchResults.isEmpty
+              ? Center(
+                  child: Text(
+                    'No toilets found',
+                    style: TextStyle(fontSize: 18, color: Colors.grey),
+                  ),
+                )
+              : ListView.builder(
+                  itemCount: _searchResults.length,
+                  itemBuilder: (context, index) {
+                    final toilet = _searchResults[index];
+                    return Card(
+                      margin: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                      elevation: 2,
+                      child: ListTile(
+                        title: Text(
+                          toilet.name,
+                          style: TextStyle(fontWeight: FontWeight.bold),
                         ),
-                      );
-                    },
-                  );
-                }
-              },
-            ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            RatingWidget(
+                              rating: toilet.rating,
+                              maxRating: 5,
+                              size: 20,
+                            ),
+                            Text(
+                              toilet.isAccessible 
+                                ? 'Wheelchair Accessible' 
+                                : 'Not Accessible',
+                              style: TextStyle(
+                                color: toilet.isAccessible 
+                                  ? Colors.green 
+                                  : Colors.red,
+                              ),
+                            ),
+                          ],
+                        ),
+                        trailing: Icon(Icons.chevron_right),
+                        onTap: () {
+                          Navigator.pushNamed(
+                            context, 
+                            '/toilet-details', 
+                            arguments: toilet
+                          );
+                        },
+                      ),
+                    );
+                  },
+                ),
           ),
         ],
       ),
-    );
-  }
-}
-
-// The ToiletSearchDelegate class to manage search functionality
-class ToiletSearchDelegate extends SearchDelegate<Toilet?> {
-  final List<Toilet> toilets; // List of toilets to search within
-
-  ToiletSearchDelegate({required this.toilets});
-
-  @override
-  List<Widget> buildActions(BuildContext context) {
-    return [
-      IconButton(
-        icon: const Icon(Icons.clear),
+      floatingActionButton: FloatingActionButton(
         onPressed: () {
-          query = '';
+          // Implement add new toilet functionality
+          _showAddToiletDialog();
         },
+        child: Icon(Icons.add),
       ),
-    ];
-  }
-
-  @override
-  Widget buildLeading(BuildContext context) {
-    return IconButton(
-      icon: const Icon(Icons.arrow_back),
-      onPressed: () {
-        // Close the search and pass null since the return type is nullable
-        close(context, null);
-      },
     );
   }
 
-  @override
-  Widget buildResults(BuildContext context) {
-    final results = toilets
-        .where((toilet) => toilet.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-
-    return ListView.builder(
-      itemCount: results.length,
-      itemBuilder: (context, index) {
-        final toilet = results[index];
-        return ListTile(
-          title: Text(toilet.name),
-          subtitle: Text(toilet.address),
-        );
-      },
-    );
-  }
-
-  @override
-  Widget buildSuggestions(BuildContext context) {
-    final suggestions = toilets
-        .where((toilet) => toilet.name.toLowerCase().contains(query.toLowerCase()))
-        .toList();
-
-    return ListView.builder(
-      itemCount: suggestions.length,
-      itemBuilder: (context, index) {
-        final toilet = suggestions[index];
-        return ListTile(
-          title: Text(toilet.name),
-          subtitle: Text(toilet.address),
+  void _showAddToiletDialog() {
+    // Placeholder for adding new toilet
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Add New Toilet'),
+          content: Text('Functionality to be implemented'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Close'),
+            ),
+          ],
         );
       },
     );

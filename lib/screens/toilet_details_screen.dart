@@ -1,90 +1,130 @@
 import 'package:flutter/material.dart';
-import 'package:toilet_spot/models/toilet.dart'; // Ensure you import the Toilet model
+import '../models/toilet.dart';
+import '../widgets/rating_widget.dart';
 
 class ToiletDetailsScreen extends StatelessWidget {
-  final Toilet toilet;
-
-  // Constructor to receive the toilet object
-  ToiletDetailsScreen({required this.toilet});
-
   @override
   Widget build(BuildContext context) {
+    final Toilet toilet = ModalRoute.of(context)!.settings.arguments as Toilet;
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(toilet.name), // Display the toilet name in the AppBar
+        title: Text(toilet.name),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.share),
+            onPressed: () {
+              // Implement share functionality
+            },
+          )
+        ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Toilet name and address
+            // Toilet Name and Rating
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Expanded(
+                  child: Text(
+                    toilet.name,
+                    style: TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+                RatingWidget(
+                  rating: toilet.rating,
+                  color: Colors.orange,
+                  size: 30,
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+
+            // Accessibility Information
+            Card(
+              elevation: 4,
+              child: ListTile(
+                leading: Icon(
+                  toilet.isAccessible 
+                    ? Icons.accessible 
+                    : Icons.not_accessible,
+                  color: toilet.isAccessible ? Colors.green : Colors.red,
+                ),
+                title: Text(
+                  toilet.isAccessible 
+                    ? 'Wheelchair Accessible' 
+                    : 'Not Wheelchair Accessible',
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+
+            // Description
             Text(
-              toilet.name,
+              'Description',
               style: TextStyle(
-                fontSize: 24, // Large font size for prominent text (toilet name)
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(height: 8),
             Text(
-              toilet.address,
-              style: TextStyle(
-                fontSize: 16, // Standard font size for the address
-                color: Colors.grey[700], // Grey color for the address
-              ),
+              toilet.description,
+              style: TextStyle(fontSize: 16),
             ),
-            Divider(), // Divider for better readability
+            SizedBox(height: 16),
 
-            // Toilet ratings and cleanliness
+            // Location Information
             Text(
-              'Rating: ${toilet.rating ?? 'Not rated yet'}',
+              'Location Details',
               style: TextStyle(
-                fontSize: 16, // Font size for the rating
-                color: Colors.blue, // Optional color for rating text
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
             SizedBox(height: 8),
             Text(
-              'Cleanliness: ${toilet.cleanliness ?? 'Not available'}',
-              style: TextStyle(
-                fontSize: 16, // Font size for cleanliness
-                color: Colors.blueGrey, // Optional color for cleanliness text
-              ),
+              'Latitude: ${toilet.latitude.toStringAsFixed(4)}',
+              style: TextStyle(fontSize: 16),
             ),
-            SizedBox(height: 8),
             Text(
-              'Accessibility: ${toilet.accessibility ?? 'Unknown'}',
-              style: TextStyle(
-                fontSize: 16, // Font size for accessibility
-                color: Colors.green, // Optional color for accessibility text
-              ),
+              'Longitude: ${toilet.longitude.toStringAsFixed(4)}',
+              style: TextStyle(fontSize: 16),
             ),
-            Divider(), // Divider for better readability
+            SizedBox(height: 16),
 
-            // Reviews section
-            Text(
-              'Reviews:',
-              style: TextStyle(
-                fontSize: 20, // Font size for the "Reviews" section title
-                fontWeight: FontWeight.bold, // Bold text for the section title
-              ),
-            ),
-            Expanded(
-              child: ListView.builder(
-                itemCount: toilet.reviews?.length ?? 0, // Check if reviews exist
-                itemBuilder: (context, index) {
-                  final review = toilet.reviews![index]; // Access the reviews
-                  return Card(
-                    margin: EdgeInsets.symmetric(vertical: 5),
-                    child: ListTile(
-                      title: Text(review.username),
-                      subtitle: Text(review.comment),
-                      trailing: Icon(Icons.star, color: Colors.yellow),
-                    ),
-                  );
-                },
-              ),
+            // Action Buttons
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                ElevatedButton.icon(
+                  onPressed: () {
+                    // Implement navigation
+                  },
+                  icon: Icon(Icons.navigation),
+                  label: Text('Navigate'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                OutlinedButton.icon(
+                  onPressed: () {
+                    // Implement review functionality
+                  },
+                  icon: Icon(Icons.rate_review),
+                  label: Text('Write Review'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: Colors.blue,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

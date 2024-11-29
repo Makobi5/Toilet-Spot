@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'screens/home_screen.dart'; // Import the HomeScreen
-import 'package:toilet_spot/providers/lib/state/toilet_state_notifier.dart';
-
-
-
-
+import 'screens/home_screen.dart';
+import 'screens/map_screen.dart';
+import 'screens/toilet_details_screen.dart';
+import 'models/toilet.dart';
 
 void main() {
-  runApp(const ProviderScope(child: MyApp())); // Wrap the app with ProviderScope for Riverpod
+  runApp(ToiletSpotApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({Key? key}) : super(key: key);
-
+class ToiletSpotApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Toilet Spot',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
-      home:  HomeScreen(), // Set HomeScreen as the starting screen
+      initialRoute: '/',
+      routes: {
+        '/': (context) => HomeScreen(),
+        '/map': (context) => MapScreen(),
+        '/toilet-details': (context) => ToiletDetailsScreen(),
+      },
     );
   }
 }
